@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- <meta name="viewport" content="width=640,initial-scale=0.5,maximum-scale=0.5, minimum-scale=0.5,user-scalable=no"> -->
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>WebAlbum</title>
+    <link rel="stylesheet" href="animate.css">
+    <!-- <script src="zepto.min.js"></script>
+    <script src="touch.js"></script> -->
+    <script src="jquery.min.js"></script>
+    <script src="jquery.mobile.min.js"></script>
+    <style>
+        html,
+        body,
+        div,
+        span,
+        applet,
+        object,
+        iframe,
+        h1,
+        h2,
+        h3,
+        h4,
+        h5,
+        h6,
+        p,
+        blockquote,
+        pre,
+        a,
+        abbr,
+        acronym,
+        address,
+        big,
+        cite,
+        code,
+        del,
+        dfn,
+        em,
+        img,
+        ins,
+        kbd,
+        q,
+        s,
+        samp,
+        small,
+        strike,
+        strong,
+        sub,
+        sup,
+        tt,
+        var,
+        b,
+        u,
+        i,
+        center,
+        dl,
+        dt,
+        dd,
+        ol,
+        ul,
+        li,
+        fieldset,
+        form,
+        label,
+        legend,
+        table,
+        caption,
+        tbody,
+        tfoot,
+        thead,
+        tr,
+        th,
+        td,
+        article,
+        aside,
+        canvas,
+        details,
+        embed,
+        figure,
+        figcaption,
+        footer,
+        header,
+        hgroup,
+        menu,
+        nav,
+        output,
+        ruby,
+        section,
+        summary,
+        time,
+        mark,
+        audio,
+        video {
+            margin: 0;
+            padding: 0;
+            border: 0;
+            font-size: 100%;
+            font: inherit;
+            vertical-align: baseline;
+        }
+
+        /* HTML5 display-role reset for older browsers */
+
+        article,
+        aside,
+        details,
+        figcaption,
+        figure,
+        footer,
+        header,
+        hgroup,
+        menu,
+        nav,
+        section {
+            display: block;
+        }
+
+        body {
+            line-height: 1;
+        }
+
+        ol,
+        ul {
+            list-style: none;
+        }
+
+        blockquote,
+        q {
+            quotes: none;
+        }
+
+        blockquote:before,
+        blockquote:after,
+        q:before,
+        q:after {
+            content: '';
+            content: none;
+        }
+
+        table {
+            border-collapse: collapse;
+            border-spacing: 0;
+        }
+    </style>
+    <style>
+        body{
+            background: #333;
+        }
+        li{
+            width: 100px;
+            width: 100px;
+            float: left;
+            overflow: hidden;
+        }
+        .large{
+            width: 100vw;
+            height: 100vh;
+            position: fixed;
+            background: #333;
+        }
+    </style>
+</head>
+
+<body>
+    <div data-role="page">
+        <ul id="container" class="img-container">
+        </ul>
+        <div class="large animated fadeIn" id="large_container" style="display:none">
+            <img id="large_img"></img>
+        </div>
+        <script>
+                var cid;
+                var total = 18;
+                var zWin = $(window);
+                var domImage = document.getElementById("large_img")
+                var render = function(){
+                    var winWidth = zWin.width();
+                    var padding = 2;
+                    var picWidth = Math.floor((winWidth-padding*3)/4);
+                    var tmpl = [];
+                    var picNode = '';
+                    for (var i = 1; i < total; i++) {
+                        var imgUrl = 'img/' + i + '.jpg';
+                        tmpl.push(imgUrl);
+                    }
+                    /*generator*/
+                    var tmplLen = tmpl.length
+                    for (var index = 0; index < tmplLen; index++) {
+                        var p = padding;
+                        if(i%4==0){
+                            p = 0;
+                        }
+        
+                        picNode += '<li data-id="'+ (index + 1) + '"class="animated bounceIn" style="width:'+ picWidth +'px;height:' + picWidth + 'px;padding-top:' + padding + 'px;padding-left:'+ p 
+                        +'px"><canvas id="cvs_' + (index + 1) + '"></canvas></li>';
+                        
+                        var imgObj = new Image();
+                        imgObj.index = index + 1;
+                        imgObj.onload = function(){
+                            var cvs = $('#cvs_'+this.index)[0].getContext("2d");
+                            cvs.width = this.width;
+                            cvs.height = this.height;
+                            cvs.drawImage(this,0,0);
+                        }
+                        imgObj.src = tmpl.shift();
+                    }
+                    $("#container").append(picNode);
+                }
+                render();
+                var largeImg = $('#large_img');
+                var loadImg = function(id,callback){
+                    var imgUrl = 'img/' + id + '.large.jpg';
+                    var imgObj = new Image();
+                    imgObj.onload = function(){
+                        $('#large_container').show();
+                        var w = this.width;
+                        var h = this.height;
+                        var winWidth = zWin.width();
+                        var winHeight = zWin.height();
+                        largeImg.attr('src',imgUrl).removeAttr('style');
+                        if(h/w>winHeight/winWidth){
+                            var realW = (winHeight/h)*w;
+                            var paddingLeft = parseInt((winWidth - realW)/2);
+                            largeImg.css('height',winHeight).css('padding-left',paddingLeft);
+                        }else{
+                            var realH = (winWidth/w)*h;
+                            var paddingTop = parseInt((winHeight-realH)/2);
+                            largeImg.css('width',winWidth).css('padding-top',paddingTop);
+                        }
+                        callback && callback();
+                    }
+                    imgObj.src = imgUrl;
+                }
+                $('#container').delegate('li','tap',function(){
+                    var _id = cid = $(this).attr('data-id');
+                    loadImg(_id);
+                });
+        
+                $('#large_container').on('tap',function(){
+                    $(this).hide();
+                    return false;
+                }).on('swipeleft',function(){
+                    cid++;
+                    if(cid>total){
+                        cid = total;
+                    }else{
+                        loadImg(cid,function(){
+                            domImage.addEventListener('webkitAnimationEnd',function(){
+                                largeImg.removeAttr('class');
+                                domImage.removeEventListener('webkitAnimationEnd');
+                            },false);
+                            largeImg.addClass('animated bounceInRight')
+                        });
+                    }
+                }).on('swiperight',function(){
+                    cid--;
+                    if(cid<1){
+                        cid = 1;
+                    }else{
+                        loadImg(cid,function(){
+                            domImage.addEventListener('webkitAnimationEnd',function(){
+                                largeImg.removeAttr('class');
+                                domImage.removeEventListener('webkitAnimationEnd');
+                            },false);
+                            largeImg.addClass('animated bounceInLeft')
+                        });
+                    }
+                })
+
+                // $('#large_container').tap(function(){
+                //     $(this).hide();
+                // }).swipeLeft(function(){
+                //     console.log("damnit");
+                //     cid > total ? total : (cid++ && loadImg(cid)) ;
+                // }).swipeRight(function(){
+                //     cid < 1 ? 1 : (cid-- && loadImg(cid)) ;
+                // })
+            </script>
+        
+    </div>
+
+
+</body>
+
+</html>
